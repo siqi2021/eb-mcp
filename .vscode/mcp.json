@@ -1,0 +1,15 @@
+{
+	"servers": {
+		"eb-mcp": {
+			"type": "stdio",
+			"command": "/usr/local/bin/node",
+			"args": [
+				"${workspaceFolder}/dist/build.js"
+			],
+			"env": {
+				"EB_BILLING_CA_CERT_PATH": "/etc/ssl/cert.pem",
+				"NODE_EXTRA_CA_CERTS": "/etc/ssl/cert.pem"
+			}
+		}
+	}
+}

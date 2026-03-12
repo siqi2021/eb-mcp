@@ -1,0 +1,1114 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Default module",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+        {
+      "name": "payment-transaction"
+    },
+    {
+      "name": "refund"
+    },
+    {
+      "name": "payment-method"
+    },
+    {
+      "name": "insight"
+    }
+  ],
+  "paths": {
+    "/api/data-query": {
+      "post": {
+        "summary": "get a list of payments",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-transaction"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "queryObject": {
+                    "type": "string",
+                    "enum": [
+                      "usage-event-insights-summary",
+                      "usage-event-insights-detail",
+                      "revenue-insights-summary",
+                      "revenue-insights-detail",
+                      "bucket-transaction",
+                      "usage-event",
+                      "aggregated-usage",
+                      "payment-query-list"
+                    ]
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "fieldName": {
+                          "type": "string",
+                          "enum": [
+                            "transactionId",
+                            "customerIdentifier",
+                            "paymentGatewayType",
+                            "status"
+                          ]
+                        },
+                        "fieldValues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {}
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "endDate",
+                  "queryObject",
+                  "startDate"
+                ]
+              },
+              "example": {
+                "startDate": "2026-01-01",
+                "endDate": "2026-03-01",
+                "queryObject": "payment-query-list",
+                "filters": [
+                  {
+                    "fieldName": "paymentGatewayType",
+                    "fieldValues": [
+                      "stripe-connect"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "title": "Unique ID in the payment table",
+                            "description": "id of this record"
+                          },
+                          "gatewayLink": {
+                            "type": "string",
+                            "title": "Gateway payment link",
+                            "description": "This link can be used to initiate payment on the corresponding payment platform (for WeChat Pay, the frontend needs to directly convert the address into a QR code)"
+                          },
+                          "customerIdentifier": {
+                            "type": "string",
+                            "title": "Customer identifier",
+                            "description": "Can be phone number/email/openId, etc.",
+                            "nullable": true
+                          },
+                          "transactionId": {
+                            "type": "string",
+                            "title": "Transaction ID",
+                            "description": "payment transaction id"
+                          },
+                          "description": {
+                            "type": "string",
+                            "title": "Transaction information",
+                            "description": "Description information for initiating payment"
+                          },
+                          "amount": {
+                            "type": "string",
+                            "title": "Payment amount",
+                            "description": "Payment amount"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "title": "Currency unit",
+                            "description": "Currency code, following ISO-4217 standard"
+                          },
+                          "paymentGateway": {
+                            "type": "string",
+                            "title": "Payment gateway",
+                            "description": "If payment is completed, returns the earliest successfully paid gateway",
+                            "enum": [
+                              "stripe-connect",
+                              "alipay-page",
+                              "wechat-pay-native"
+                            ]
+                          },
+                          "dateTime": {
+                            "type": "string",
+                            "title": "Creation time",
+                            "description": "Creation time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "title": "Payment status",
+                            "enum": [
+                              "pending",
+                              "processing",
+                              "completed-with-success",
+                              "completed-with-failure",
+                              "expired",
+                              "closed",
+                              "refunded"
+                            ]
+                          },
+                          "refundedAmount": {
+                            "type": "string",
+                            "title": "Refund amount",
+                            "description": "Refund amount"
+                          }
+                        },
+                        "required": [
+                          "gatewayLink",
+                          "id"
+                        ]
+                      }
+                    },
+                    "number": {
+                      "type": "integer",
+                      "title": "Page number"
+                    },
+                    "size": {
+                      "type": "integer",
+                      "title": "Number of items per page"
+                    },
+                    "totalElements": {
+                      "type": "integer",
+                      "title": "Total number of items"
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "title": "Total number of pages"
+                    },
+                    "last": {
+                      "type": "boolean"
+                    },
+                    "first": {
+                      "type": "boolean"
+                    },
+                    "numberOfElements": {
+                      "type": "integer"
+                    },
+                    "empty": {
+                      "type": "boolean"
+                    },
+                    "sort": {
+                      "type": "object",
+                      "properties": {
+                        "empty": {
+                          "type": "boolean"
+                        },
+                        "sorted": {
+                          "type": "boolean"
+                        },
+                        "unsorted": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "empty",
+                        "sorted",
+                        "unsorted"
+                      ]
+                    },
+                    "pageable": {
+                      "type": "object",
+                      "properties": {
+                        "pageNumber": {
+                          "type": "integer"
+                        },
+                        "pageSize": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "paged": {
+                          "type": "boolean"
+                        },
+                        "unpaged": {
+                          "type": "boolean"
+                        },
+                        "sort": {
+                          "type": "object",
+                          "properties": {
+                            "empty": {
+                              "type": "boolean"
+                            },
+                            "sorted": {
+                              "type": "boolean"
+                            },
+                            "unsorted": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "empty",
+                            "sorted",
+                            "unsorted"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "pageNumber",
+                        "pageSize",
+                        "sort",
+                        "offset",
+                        "paged",
+                        "unpaged"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "content",
+                    "number",
+                    "size",
+                    "totalElements",
+                    "totalPages",
+                    "last",
+                    "first",
+                    "pageable",
+                    "sort",
+                    "numberOfElements",
+                    "empty"
+                  ]
+                },
+                "example": {
+                  "records": [
+                    {
+                      "id": "48157f1b-f5ec-4f93-bbc0-8473e275bc30",
+                      "gatewayLink": "https://checkout.stripe.com/c/pay/cs_test_a1YyW0yQcqjpQG3TKUz96ONYWW1AeFzCh8Zxdlxe17fHuvjs0D5tojc0Eh#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSd2cXdsdWBEZmZqcGtxJz8nZGZmcVo0Vm9fb39DUjVMUkdgNW1OJyknZHVsTmB8Jz8ndW5acWB2cVowNFZLdH1UNlNIR3NdQ0BHZmo0cUBtNjBEYmJGdHUzNTxAdUR1TERHZEhmS2pBNX9OajJcUDcwVWlucz1sV3NBdXVdcT1BV09LZHNcUGwydUpWNkhPaWBQVzU1fUJhU3RgQWInKSdjd2poVmB3c2B3Jz9xd3BgKSdnZGZuYndqcGthRmppancnPycmY2NjY2NjJyknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl",
+                      "email": null,
+                      "transactionId": "ui939sl09ie32uo23we32rtkki",
+                      "description": "test",
+                      "amount": "10000",
+                      "currency": "USD",
+                      "paymentGateway": "STRIPE_CONNECT",
+                      "date": "2026-01-27T09:43:09Z",
+                      "status": "PROCESSING",
+                      "refundedAmount": "0"
+                    }
+                  ],
+                  "pageNum": 1,
+                  "pageSize": 2,
+                  "total": 1,
+                  "pages": 1,
+                  "hasNext": false,
+                  "hasPrev": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/transactions": {
+      "post": {
+        "summary": "payment transactions",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-transaction"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoiZGVtbyIsImV4cCI6MTc2OTY4MTY2NCwiaWF0IjoxNzY5Njc4MDY0LCJzY29wZSI6IlJPTEVfQURNSU4ifQ.itZ7Eu4HEJ0kpyK31zx5JTG7zfYEXOLv-kDcdd9hUcjYrRgeb_l4JKjmHSm35_Bsn_tKjrNV-ua5e9XP1YwM4Ta5WSECOw6B_ycz434rM7rCCJfG2uKFI6jzLSMSd1XDLm0MQA0Y3yTBYOSLgJXHnpBCbnVxtDCPepkVjFbGKbZLh3-dih8Wg4IJ4wiZbq-G-ulsQD6zXLac0L7N1i7Q3N3gbTiOkBvUNE6UbFP51_VXEU0bXigycHw2hqfkIc7NPVcxPVSpJYs136v0C4DRowu2k3V5g4xvGxxuHagM1k4S1tWvnmsSFbRvPUsppnB6L1ibgwtwd5A5A0z0kb7dOQ",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transactionId": {
+                    "type": "string",
+                    "description": "The business transaction id corresponding to the payment, such as order number",
+                    "title": "Transaction ID"
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Transaction Description",
+                    "description": "Description of the business transaction"
+                  },
+                  "amount": {
+                    "type": "string",
+                    "title": "Transaction Amount"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "title": "Currency Unit",
+                    "description": "ISO 4217 standard"
+                  },
+                  "date": {
+                    "type": "string"
+                  },
+                  "customerIdentifier": {
+                    "type": "string",
+                    "title": "Customer Unique Identifier",
+                    "description": "Customer unique identifier, which can be phone number/email/UUID, etc. When using Stripe payment, this value must be an email"
+                  },
+                  "paymentGatewayType": {
+                    "type": "string",
+                    "title": "Gateway Type",
+                    "description": "alipay-page (Alipay) / wechat-pay-native (WeChat Pay) / stripe-connect (Stripe)",
+                    "enum": [
+                      "stripe-connect",
+                      "alipay-page",
+                      "wechat-pay-native"
+                    ]
+                  },
+                  "completePayRedirectUrl": {
+                    "type": "string",
+                    "title": "Callback URL after payment completion",
+                    "description": "Both successful and failed payments are considered completed. When the payment gateway is Stripe, this field is required and must start with https"
+                  },
+                  "onlineScenario": {
+                    "type": "boolean",
+                    "title": "One-time Payment",
+                    "description": "True for instant payment, false for recurring payment"
+                  },
+                  "cancelPayRedirectUrl": {
+                    "type": "string",
+                    "title": "Cancel Payment Callback URL",
+                    "description": "When the payment gateway is Stripe, this field is required and must be a URL starting with https"
+                  }
+                },
+                "required": [
+                  "transactionId",
+                  "amount",
+                  "currency",
+                  "paymentGatewayType",
+                  "completePayRedirectUrl",
+                  "onlineScenario",
+                  "cancelPayRedirectUrl",
+                  "date"
+                ]
+              },
+              "example": {
+                "transactionId": "string",
+                "description": "string",
+                "amount": "string",
+                "currency": "string",
+                "paymentGatewayType": "string",
+                "completePayRedirectUrl": "string",
+                "onlineScenario": true,
+                "customerIdentifier": "string",
+                "cancelPayRedirectUrl": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "paymentUrl": {
+                      "type": "string",
+                      "title": "Payment Link Address",
+                      "description": "Alipay/Stripe can directly navigate to the payment page via this URL, while WeChat requires rendering this link into a QR code, which users scan to make a payment"
+                    },
+                    "paymentId": {
+                      "type": "string",
+                      "title": "Unique ID generated by the payment system",
+                      "description": "Unique ID generated when initiating payment"
+                    },
+                    "expireTime": {
+                      "type": "integer",
+                      "title": "Timeout duration in seconds",
+                      "description": "Payment timeout duration (in seconds)"
+                    },
+                    "status": {
+                      "type": "string",
+                      "title": "Payment Status",
+                      "enum": [
+                        "waiting",
+                        "processing",
+                        "succeeded",
+                        "failed",
+                        "closed"
+                      ],
+                      "description": "Payment status"
+                    }
+                  },
+                  "required": [
+                    "paymentUrl",
+                    "paymentId",
+                    "expireTime",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/transactions/{transactionId}/status": {
+      "get": {
+        "summary": "transaction status",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-transaction"
+        ],
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "paymentUrl": {
+                      "type": "string"
+                    },
+                    "paymentId": {
+                      "type": "string"
+                    },
+                    "expireTime": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed-with-success",
+                        "completed-with-failure",
+                        "expired",
+                        "closed",
+                        "refunded"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "paymentUrl",
+                    "paymentId",
+                    "expireTime",
+                    "status"
+                  ]
+                },
+                "example": {
+                  "paymentUrl": "string",
+                  "paymentId": "string",
+                  "expireTime": 0,
+                  "status": "string"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/refund": {
+      "post": {
+        "summary": "post refund",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "refund"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transactionId": {
+                    "type": "string",
+                    "title": "发起交易时使用的tranctionId",
+                    "description": "payment transaction id"
+                  },
+                  "refundTransactionId": {
+                    "type": "string",
+                    "title": "退款交易id",
+                    "description": "refund transaction id, required for query refund"
+                  }
+                },
+                "required": [
+                  "transactionId",
+                  "refundTransactionId"
+                ]
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transactionId": {
+                      "type": "string",
+                      "title": "发起交易时使用的tranctionId"
+                    },
+                    "status": {
+                      "type": "string",
+                      "title": "退款状态",
+                      "description": "created/refunding/success/failure/cancel/closed"
+                    }
+                  },
+                  "required": [
+                    "transactionId",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "get refund",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "refund"
+        ],
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "query",
+            "description": "payment transaction id",
+            "required": false,
+            "example": "f93d864b-fde8-43f7-8ce4-4e54f5133c02",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "refundTransactionId",
+            "in": "query",
+            "description": "refund transaction id",
+            "required": false,
+            "example": "325d4e97-ffe6-442c-af9d-1b8d76f5a194",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transactionId": {
+                      "type": "string",
+                      "title": "发起交易时使用的tranctionId",
+                      "description": "payment transaction id"
+                    },
+                    "refundTransactionId": {
+                      "type": "string",
+                      "description": "refund transaction id",
+                      "title": "退款id"
+                    },
+                    "status": {
+                      "type": "string",
+                      "title": "退款状态",
+                      "enum": [
+                        "created",
+                        "succeeded",
+                        "failed",
+                        "canceled",
+                        "closed",
+                        "refunding"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "transactionId",
+                    "refundTransactionId",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/insights": {
+      "post": {
+        "summary": "payment insight",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "insight"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "fieldName": {
+                          "type": "string",
+                          "enum": [
+                            "status",
+                            "paymentGatewayType",
+                            "currency"
+                          ]
+                        },
+                        "fieldValues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "queryObject": {
+                    "type": "string",
+                    "enum": [
+                      "payment-statistics-query"
+                    ]
+                  },
+                  "aggregationPeriod": {
+                    "type": "string",
+                    "enum": [
+                      "daily",
+                      "monthly",
+                      "yearly"
+                    ]
+                  }
+                },
+                "required": [
+                  "endDate",
+                  "startDate",
+                  "queryObject",
+                  "aggregationPeriod"
+                ]
+              },
+              "example": {
+                "startDate": "2026-01-11",
+                "endDate": "2026-02-11",
+                "filters": [
+                  {
+                    "fieldName": "currency",
+                    "fieldValues": [
+                      "USD"
+                    ]
+                  }
+                ],
+                "queryObject": "payment-statistics-query",
+                "aggregationPeriod": "daily"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "title": "统计日期"
+                      },
+                      "totalAmount": {
+                        "type": "number",
+                        "title": "收款金额"
+                      },
+                      "totalRefundAmount": {
+                        "type": "number",
+                        "title": "退款金额"
+                      },
+                      "totalReceivedAmount": {
+                        "type": "number",
+                        "title": "实收金额"
+                      },
+                      "transactionCount": {
+                        "type": "number",
+                        "title": "交易次数",
+                        "description": "number of payment transactions"
+                      }
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "date": "2026-02-06",
+                    "totalAmount": 1999.03,
+                    "totalRefundAmount": 1999,
+                    "totalReceivedAmount": 0.3,
+                    "transactionCount": 123
+                  }
+                ]
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/transactions/{transactionId}/status": {
+      "post": {
+        "summary": "Refresh Transaction Status",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-transaction"
+        ],
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "100051",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Close Transaction",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-transaction"
+        ],
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "100053",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetStatus",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "closed",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/payment-methods": {
+      "post": {
+        "summary": "set up payment method",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-method"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": {
+                "customerIdentifier": "string",
+                "paymentGatewayType": "string",
+                "redirectUrl": "string",
+                "cancelUrl": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "responses": {},
+    "securitySchemes": {
+      "token": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [],
+  "security": []
+}

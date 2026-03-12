@@ -41,8 +41,8 @@ app.post('/mcp', async (req, res) => {
   if (sessionId && transports[sessionId]) {
     // Reuse existing transport
     transport = transports[sessionId];
-  } else if (!sessionId && isInitializeRequest(req.body)) {
-    // New initialization request
+  } else if (isInitializeRequest(req.body)) {
+    // New initialization request (allow even if an unknown/expired session id was provided)
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sessionId) => {
@@ -71,7 +71,7 @@ app.post('/mcp', async (req, res) => {
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: 'Bad Request: No valid session ID provided',
+        message: 'Bad Request: No valid session ID provided. Send initialize first (without mcp-session-id), then reuse returned Mcp-Session-Id for tools/call.',
       },
       id: null,
     });
@@ -102,7 +102,7 @@ app.get('/mcp', handleSessionRequest);
 app.delete('/mcp', handleSessionRequest);
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', tools: 1 });
+  res.status(200).json({ status: 'healthy', tools: 8 });
 });
 
 app.listen(8080, () => {

@@ -1,0 +1,2288 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Default module",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "authentication"
+    },
+    {
+      "name": "account"
+    },
+    {
+      "name": "contract-actions"
+    },
+    {
+      "name": "invoice"
+    },
+    {
+      "name": "usage-event"
+    },
+    {
+      "name": "bucket"
+    },
+    {
+      "name": "payment-method"
+    }
+  ],
+  "paths": {
+    "/api/authenticate/login": {
+      "post": {
+        "summary": "user login",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createToken",
+        "tags": [
+          "authentication"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationRequest"
+              },
+              "example": {
+                "username": "user@easybilling.cloud",
+                "password": "12345678"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/authenticate/logout": {
+      "post": {
+        "summary": "logout",
+        "deprecated": false,
+        "description": "",
+        "operationId": "logout",
+        "tags": [
+          "authentication"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/accounts": {
+      "post": {
+        "summary": "Create a new account",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createAccount",
+        "tags": [
+          "account"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRequest"
+              },
+              "example": {
+                "name": "Abbie",
+                "accountNumber": "ACC-0000000001",
+                "addressLine1": "street or PO Box",
+                "addressLine2": "Apt, suite, unit, building, floor etc.",
+                "country": "US",
+                "state": "CA",
+                "city": "Los Angeles",
+                "postalCode": "84001",
+                "email": "Abbie@gmail.com",
+                "type": "silver",
+                "source": "aws"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                },
+                "example": {
+                  "name": "Abbie",
+                  "number": "ACC-0000000041",
+                  "addressLine1": "street or PO Box",
+                  "addressLine2": "Apt, suite, unit, building, floor etc.",
+                  "country": "US",
+                  "state": "CA",
+                  "city": "Los Angeles",
+                  "postalCode": "84001",
+                  "email": "Abbie@gmail.com",
+                  "status": "active",
+                  "source": "aws",
+                  "taxExempt": false,
+                  "id": "e3ef9de3-bbdc-495c-b608-a6fa1f62ada0",
+                  "createdOn": "2026-03-02T03:39:30.676048Z",
+                  "updatedOn": "2026-03-02T03:39:30.676051Z",
+                  "createdBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510",
+                  "updatedBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get all accounts",
+        "deprecated": false,
+        "description": "",
+        "operationId": "listAllAccounts",
+        "tags": [
+          "account"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "name": "Abbie",
+                    "number": "ACC-0000000041",
+                    "addressLine1": "street or PO Box",
+                    "addressLine2": "Apt, suite, unit, building, floor etc.",
+                    "country": "US",
+                    "state": "CA",
+                    "city": "Los Angeles",
+                    "postalCode": "84001",
+                    "email": "Abbie@gmail.com",
+                    "status": "active",
+                    "source": "aws",
+                    "taxExempt": false,
+                    "id": "e3ef9de3-bbdc-495c-b608-a6fa1f62ada0",
+                    "createdOn": "2026-03-02T03:39:31Z",
+                    "updatedOn": "2026-03-02T03:39:31Z",
+                    "createdBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510",
+                    "updatedBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510"
+                  }
+                ]
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/accounts/{id}": {
+      "get": {
+        "summary": "Get an account by id",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAccountById",
+        "tags": [
+          "account"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id of account to be searched",
+            "required": true,
+            "example": "{{accountId}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found the Account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                },
+                "example": {
+                  "name": "Abbie",
+                  "number": "ACC-0000000041",
+                  "addressLine1": "street or PO Box",
+                  "addressLine2": "Apt, suite, unit, building, floor etc.",
+                  "country": "US",
+                  "state": "CA",
+                  "city": "Los Angeles",
+                  "postalCode": "84001",
+                  "email": "Abbie@gmail.com",
+                  "status": "active",
+                  "source": "aws",
+                  "taxExempt": false,
+                  "id": "e3ef9de3-bbdc-495c-b608-a6fa1f62ada0",
+                  "createdOn": "2026-03-02T03:39:31Z",
+                  "updatedOn": "2026-03-02T03:39:31Z",
+                  "createdBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510",
+                  "updatedBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update a account by id",
+        "deprecated": false,
+        "description": "",
+        "operationId": "updateAccountById",
+        "tags": [
+          "account"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "account id",
+            "required": true,
+            "example": "{{accountId}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccountRequest"
+              },
+              "examples": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                },
+                "example": {
+                  "name": "Abbie2",
+                  "number": "ACC-0000000001",
+                  "addressLine1": "street or PO Box2",
+                  "addressLine2": "Apt, suite, unit, building, floor etc.2",
+                  "country": "US",
+                  "state": "CA",
+                  "city": "Redwood City",
+                  "postalCode": "84002",
+                  "email": "abbie2@gmail.com",
+                  "status": "active",
+                  "source": "aws",
+                  "taxExempt": true,
+                  "id": "e3ef9de3-bbdc-495c-b608-a6fa1f62ada0",
+                  "createdOn": "2026-03-02T03:39:31Z",
+                  "updatedOn": "2026-03-02T03:39:31Z",
+                  "createdBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510",
+                  "updatedBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/accounts/number/{accountNumber}": {
+      "get": {
+        "summary": "Get an account by Accoumt Number",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAccountById",
+        "tags": [
+          "account"
+        ],
+        "parameters": [
+          {
+            "name": "accountNumber",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "{{accountNumber}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found the Account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                },
+                "example": {
+                  "name": "Abbie",
+                  "number": "ACC-0000000041",
+                  "addressLine1": "street or PO Box",
+                  "addressLine2": "Apt, suite, unit, building, floor etc.",
+                  "country": "US",
+                  "state": "CA",
+                  "city": "Los Angeles",
+                  "postalCode": "84001",
+                  "email": "Abbie@gmail.com",
+                  "status": "active",
+                  "source": "aws",
+                  "taxExempt": false,
+                  "id": "e3ef9de3-bbdc-495c-b608-a6fa1f62ada0",
+                  "createdOn": "2026-03-02T03:39:31Z",
+                  "updatedOn": "2026-03-02T03:39:31Z",
+                  "createdBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510",
+                  "updatedBy": "f17bb9d8-ff51-423c-b6d3-bc474b755510"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/invoices": {
+      "get": {
+        "summary": "Get invoices",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAllInvices",
+        "tags": [
+          "invoice"
+        ],
+        "parameters": [
+          {
+            "name": "accountNumber",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "ACC-0000000001",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceInfo"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/invoices/{invoiceId}": {
+      "get": {
+        "summary": "Get invoice details by id",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getInvoiceDetailByInvoiceId",
+        "tags": [
+          "invoice"
+        ],
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "description": "invoice to be searched",
+            "required": true,
+            "example": "{{invoice}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetailInfo"
+                },
+                "example": {
+                  "id": "25ea86c7-e710-45d4-a580-7c13711a74bb",
+                  "number": "INV-000000049",
+                  "accountId": "9e266c75-aef0-4c67-8a0b-71c917b21a53",
+                  "subTotal": 100.03,
+                  "discountAmount": -10.01,
+                  "amountAfterDiscount": 90.02,
+                  "taxAmount": 1.2,
+                  "totalAmount": 91.22,
+                  "currency": "USD",
+                  "status": "posted",
+                  "date": "2026-01-01",
+                  "dueDate": "2026-01-31",
+                  "createdOn": "2026-01-18T07:15:12Z",
+                  "updatedOn": "2026-01-18T15:58:31Z",
+                  "createdBy": "f2f873fa-e90b-4e54-b6de-cab8a73259ec",
+                  "updatedBy": "f2f873fa-e90b-4e54-b6de-cab8a73259ec",
+                  "items": [
+                    {
+                      "planItemId": "8d73911d-b066-4899-b5ba-aa703fc386ac",
+                      "planItemName": "Plan Item_36568989",
+                      "periodStartDate": "2026-01-01",
+                      "periodEndDate": "2026-02-01",
+                      "quantity": 1,
+                      "subTotal": 100.03,
+                      "amountAfterDiscount": 90.02,
+                      "totalAmount": 91.22,
+                      "taxAmount": 1.2,
+                      "discountAmount": -10.01,
+                      "skuId": "SKU-0",
+                      "createdOn": "2026-01-18T07:15:12Z",
+                      "updatedOn": "2026-01-18T15:58:31Z",
+                      "createdBy": "f2f873fa-e90b-4e54-b6de-cab8a73259ec",
+                      "updatedBy": "f2f873fa-e90b-4e54-b6de-cab8a73259ec"
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/contract-actions": {
+      "post": {
+        "summary": "Create Contract Action",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "contract-actions"
+          ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accountNumber": {
+                    "type": "string",
+                    "description": "Account Number"
+                  },
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ContractActionItemRequest"
+                    },
+                    "description": "Contract actions"
+                  }
+                },
+                "required": [
+                  "accountNumber",
+                  "actions"
+                ]
+              },
+              "examples": {
+                "1": {
+                  "value": {
+                    "accountNumber": "ACC-0000000001",
+                    "actions": [
+                      {
+                        "type": "create-contract-with-plan",
+                        "createContractWithPlan": [
+                          {
+                            "planId": "16ad814a-dd1b-41c8-9b4b-4e8551170fee",
+                            "effectiveDate": "2026-02-01",
+                            "expirationDate": "2027-02-01",
+                            "currency": [
+                              "USD"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "summary": "Create Contract with Plan"
+                },
+                "2": {
+                  "value": {
+                    "accountNumber": "ACC-0000000001",
+                    "actions": [
+                      {
+                        "type": "create-contract-with-plan",
+                        "createContractWithPlan": [
+                          {
+                            "planId": "16ad814a-dd1b-41c8-9b4b-4e8551170fee",
+                            "effectiveDate": "2026-02-01",
+                            "expirationDate": "2027-02-01",
+                            "currency": [
+                              "USD"
+                            ],
+                            "contractPrice": [
+                              {
+                                "planItemId": "074d0187-0a8b-4f81-a3cf-56762b1dad54",
+                                "effectiveDate": "2025-02-01",
+                                "pricingTables": [
+                                  {
+                                    "pricingTableItems": [
+                                      {
+                                        "tier": 1,
+                                        "start": 0,
+                                        "price": 99,
+                                        "priceFormat": "per-unit",
+                                        "currency": "USD"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "summary": "Create Contract with Contract Price"
+                },
+                "3": {
+                  "value": {
+                    "accountNumber": "ACC-0000000001",
+                    "actions": [
+                      {
+                        "type": "switch-plan",
+                        "switchPlan": {
+                          "contractId": "06380c37-9fbe-439f-bb38-926745116471",
+                          "planId": "4e9ed307-819c-4195-afb7-39269eea37b4",
+                          "effectiveDate": "2026-03-01",
+                          "currency": "USD"
+                        }
+                      }
+                    ]
+                  },
+                  "summary": "Switch Plan"
+                },
+                "4": {
+                  "value": {
+                    "accountNumber": "ACC-0000000001",
+                    "actions": [
+                      {
+                        "type": "cancel",
+                        "cancel": {
+                          "contractId": "06380c37-9fbe-439f-bb38-926745116471",
+                          "effectiveDate": "2026-09-01"
+                        }
+                      }
+                    ]
+                  },
+                  "summary": "Cancel Contract"
+                },
+                "5": {
+                  "value": {
+                    "accountNumber": "ACC-0000000001",
+                    "actions": [
+                      {
+                        "type": "renew",
+                        "renew": {
+                          "contractId": "06380c37-9fbe-439f-bb38-926745116471",
+                          "effectiveDate": "2027-02-01",
+                          "expirationDate": "2029-02-01"
+                        }
+                      }
+                    ]
+                  },
+                  "summary": "Renew Contract"
+                },
+                "6": {
+                  "value": "{\n    \"accountNumber\": \"ACC-0000000001\",\n    \"actions\": [\n        {\n            \"type\": \"create-contract-with-plan-item\",\n            \"createContractWithPlanItem\": [\n                {\n                    \"planItemId\": \"e5abfaa0-4bf5-41f1-89d0-bddcd975afbd\", //prepaid product id\n                    \"effectiveDate\": \"2026-02-20\",\n                    \"currency\": [\n                        \"USD\"\n                    ]\n                }\n            ]\n        }\n    ]\n}",
+                  "summary": "Create Prepaid Credits"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractActionResponse"
+                },
+                "examples": {
+                  "1": {
+                    "summary": "Response for Create Contract",
+                    "value": {
+                      "contractActionNumber": "CA-0000000176",
+                      "contractInfo": {
+                        "accountNumber": "A000-525",
+                        "contractNumber": "CT-0000000085",
+                        "effectiveDate": "2025-07-01",
+                        "expirationDate": "2026-07-01",
+                        "status": "active",
+                        "contractSegments": [
+                          {
+                            "accountNumber": "A000-525",
+                            "contractNumber": "CT-0000000085",
+                            "previousContractSegmentId": null,
+                            "effectiveDate": "2025-07-01",
+                            "expirationDate": "2026-07-01",
+                            "currency": [
+                              "CNY"
+                            ],
+                            "planId": "16ad814a-dd1b-41c8-9b4b-4e8551170fee",
+                            "billingCycleDay": 1,
+                            "billingCycleType": "monthly",
+                            "status": "active",
+                            "id": "979b1d96-1d82-4270-9d95-9db7c77fc237",
+                            "createdOn": "2025-07-13T03:41:23.723864Z",
+                            "updatedOn": "2025-07-13T03:41:23.723868Z",
+                            "createdBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542",
+                            "updatedBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542"
+                          }
+                        ],
+                        "id": "06380c37-9fbe-439f-bb38-926745116471",
+                        "createdOn": "2025-07-13T03:41:23.726906Z",
+                        "updatedOn": "2025-07-13T03:41:23.726910Z",
+                        "createdBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542",
+                        "updatedBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542"
+                      }
+                    }
+                  },
+                  "2": {
+                    "summary": "Response for Create Contract with price update",
+                    "value": {
+                      "contractActionNumber": "CA-0000000199",
+                      "contractInfo": {
+                        "accountNumber": "A000-718",
+                        "contractNumber": "CT-0000000103",
+                        "effectiveDate": "2025-06-01",
+                        "expirationDate": "2026-07-01",
+                        "status": "active",
+                        "contractSegments": [
+                          {
+                            "accountNumber": "A000-718",
+                            "contractNumber": "CT-0000000103",
+                            "previousContractSegmentId": null,
+                            "effectiveDate": "2025-06-01",
+                            "expirationDate": "2026-07-01",
+                            "currency": [
+                              "USD"
+                            ],
+                            "planId": "a17c3b5b-ded2-4e74-8345-102f75054362",
+                            "billingCycleDay": 1,
+                            "billingCycleType": "monthly",
+                            "status": "active",
+                            "id": "6fd67b4a-278c-4007-bc48-f538f1d79faf",
+                            "createdOn": "2025-07-13T11:45:40.384469Z",
+                            "updatedOn": "2025-07-13T11:45:40.384475Z",
+                            "createdBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542",
+                            "updatedBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542"
+                          }
+                        ],
+                        "id": "d5631f9f-602f-4003-b9c4-cd198fd0ed59",
+                        "createdOn": "2025-07-13T11:45:40.402075Z",
+                        "updatedOn": "2025-07-13T11:45:40.402081Z",
+                        "createdBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542",
+                        "updatedBy": "d3e40eb2-c5d4-4141-b9d2-c8ebdad3c542"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/usage-events": {
+      "post": {
+        "summary": "Ingest usage events",
+        "deprecated": false,
+        "description": "",
+        "operationId": "ingestUsageEvents",
+        "tags": [
+          "usage-event"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UsageEvent"
+                }
+              },
+              "example": [
+                {
+                  "eventId": "ue-12345",
+                  "schemaName": "AI",
+                  "eventTime": "2026-03-02T20:53:19Z",
+                  "accountNumber": "ACC-0000000001",
+                  "attributes": [
+                    {
+                      "name": "model",
+                      "value": "GPT-5"
+                    },
+                    {
+                      "name": "token",
+                      "value": "101"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageEventIngestionResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/buckets/{accountId}": {
+      "get": {
+        "summary": "Get buckets by Account id",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getBucketsByAccountId",
+        "tags": [
+          "bucket"
+        ],
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "description": "id of account to be searched",
+            "required": true,
+            "example": "{{accountId}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found the Buckets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/api/payment-methods": {
+      "post": {
+        "summary": "set up payment method",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "payment-method"
+        ],
+        "parameters": [
+          {
+            "name": "trace-id",
+            "in": "header",
+            "description": "",
+            "example": "{{$string.uuid}}",
+            "schema": {
+              "type": "string",
+              "default": "{{$string.uuid}}"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": {
+                "customerIdentifier": "string",
+                "paymentGatewayType": "string",
+                "redirectUrl": "string",
+                "cancelUrl": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ContractActionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string"
+          },
+          "actionType": {
+            "type": "string"
+          },
+          "contractActionItemRequest": {
+            "$ref": "#/components/schemas/ContractActionItemRequest"
+          },
+          "contractSegmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired",
+              "canceled"
+            ]
+          }
+        }
+      },
+      "ContractActionItemRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Contract action type",
+            "enum": [
+              "create-contract-with-plan",
+              "create-contract-with-plan-item",
+              "switch-plan",
+              "early-renew",
+              "update-price",
+              "cancel",
+              "renew"
+            ]
+          },
+          "createContractWithPlan": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateContractWithPlanAction"
+            },
+            "description": "Create a recurring subscripton contract with a plan"
+          },
+          "createContractWithPlanItem": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateContractWithPlanItemAction"
+            },
+            "description": "Create prepaid credits"
+          },
+          "switchPlan": {
+            "$ref": "#/components/schemas/SwitchPlanAction",
+            "description": "Switch to another plan: upgrade or downgrade"
+          },
+          "earlyRenew": {
+            "$ref": "#/components/schemas/EarlyRenewAction",
+            "description": "Early renew a contract. You can change a plan and the billing cycle will re-start from the new effective date"
+          },
+          "renew": {
+            "$ref": "#/components/schemas/RenewAction",
+            "description": "Renew a contract"
+          },
+          "updatePrice": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdatePriceAction"
+            },
+            "description": "Update prices for a contract"
+          },
+          "cancel": {
+            "$ref": "#/components/schemas/CancelAction",
+            "description": "cancel a contract"
+          },
+          "externalReferenceId": {
+            "type": "string",
+            "description": "External reference identifier, e.g., an external Order ID."
+          },
+          "payImmediately": {
+            "type": "boolean",
+            "description": "Indicates whether payment should be made immediately (true for immediate payment)."
+          },
+          "paymentInfo": {
+            "$ref": "#/components/schemas/paymentInfo",
+            "description": "Payment information for the contract."
+          }
+        }
+      },
+      "CreateContractWithPlanAction": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          },
+          "expirationDate": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contractPrice": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractPriceRequest"
+            }
+          }
+        },
+        "required": [
+          "planId",
+          "effectiveDate",
+          "expirationDate",
+          "currency",
+          "contractPrice"
+        ]
+      },
+      "SwitchPlanAction": {
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contractId",
+          "planId",
+          "effectiveDate",
+          "currency"
+        ]
+      },
+      "EarlyRenewAction": {
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          },
+          "expirationDate": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contractId",
+          "planId",
+          "effectiveDate",
+          "expirationDate",
+          "currency"
+        ]
+      },
+      "RenewAction": {
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          },
+          "expirationDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contractId",
+          "effectiveDate",
+          "expirationDate"
+        ]
+      },
+      "UpdatePriceAction": {
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string"
+          },
+          "contractSegmentId": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "contractPrice": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractPriceRequest"
+            }
+          },
+          "effectiveDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contractId",
+          "contractSegmentId",
+          "planId",
+          "contractPrice",
+          "effectiveDate"
+        ]
+      },
+      "ContractPriceRequest": {
+        "type": "object",
+        "properties": {
+          "planItemId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "attributePricingTable": {
+            "$ref": "#/components/schemas/AttributePricingTableRequest"
+          },
+          "pricingTables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingTableRequest"
+            }
+          },
+          "discounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscountItemRequest"
+            }
+          }
+        },
+        "required": [
+          "planItemId",
+          "effectiveDate"
+        ]
+      },
+      "CancelAction": {
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contractId",
+          "effectiveDate"
+        ]
+      },
+      "DiscountItemRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
+          },
+          "model": {
+            "type": "string",
+            "enum": [
+              "percentage"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "code",
+          "model",
+          "value"
+        ]
+      },
+      "paymentInfo": {
+        "type": "object",
+        "properties": {
+          "paymentGatewayType": {
+            "type": "string",
+            "enum": [
+              "stripe-connect",
+              "alipay-page",
+              "wechat-pay-native"
+            ]
+          },
+          "paymentSuccessUrl": {
+            "type": "string",
+            "description": "requied for Stripe"
+          },
+          "paymentCancelUrl": {
+            "type": "string",
+            "description": "requied for Stripe"
+          }
+        },
+        "required": [
+          "paymentGatewayType"
+        ]
+      },
+      "CreateContractWithPlanItemAction": {
+        "type": "object",
+        "properties": {
+          "planItemId": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "planItemId",
+          "effectiveDate",
+          "currency"
+        ]
+      },
+      "UpdateAccountRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "description": "Name for this customer account",
+            "example": "Abbie"
+          },
+          "addressLine1": {
+            "maxLength": 256,
+            "minLength": 6,
+            "type": "string",
+            "description": "Primary address line",
+            "example": "street or PO Box"
+          },
+          "addressLine2": {
+            "type": "string",
+            "description": "Secondary address line",
+            "example": "Apt, suite, unit, building, floor etc."
+          },
+          "country": {
+            "type": "string",
+            "description": "Country code",
+            "example": "US"
+          },
+          "state": {
+            "type": "string",
+            "description": "State or province",
+            "example": "CA"
+          },
+          "city": {
+            "type": "string",
+            "description": "City name",
+            "example": "Los Angeles"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code",
+            "example": "84001"
+          },
+          "email": {
+            "maxLength": 128,
+            "minLength": 3,
+            "type": "string",
+            "description": "Email address",
+            "example": "abbie@gmail.com"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "in-active",
+              "draft"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the account"
+          },
+          "taxExempt": {
+            "type": "boolean",
+            "description": "Tax exempt used for tax engine integration"
+          }
+        }
+      },
+      "AccountResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "name"
+          },
+          "number": {
+            "type": "string"
+          },
+          "addressLine1": {
+            "type": "string"
+          },
+          "addressLine2": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "in-active",
+              "draft"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UsageEventAttribute": {
+        "required": [
+          "name",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "attribute name of the usage event schema"
+          },
+          "value": {
+            "type": "string",
+            "description": "value for this attribute"
+          }
+        }
+      },
+      "UsageEvent": {
+        "required": [
+          "accountNumber",
+          "eventId",
+          "eventTime",
+          "schemaName"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "maxLength": 64,
+            "minLength": 36,
+            "type": "string",
+            "description": "unique id of this usage event"
+          },
+          "schemaName": {
+            "type": "string",
+            "description": "the schema you defined in usage event schema for this usage event"
+          },
+          "eventTime": {
+            "type": "string",
+            "description": "time of usage event in ISO format"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "the customer account consuming this usage"
+          },
+          "attributes": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageEventAttribute"
+            }
+          }
+        }
+      },
+      "UsageEventErrorDetail": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "UsageEventIngestionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "successDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageEventSuccessDetail"
+            }
+          },
+          "errorDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageEventErrorDetail"
+            }
+          }
+        }
+      },
+      "UsageEventSuccessDetail": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string"
+          }
+        }
+      },
+      "AttributePricingTableItemRequest": {
+        "required": [
+          "attributes",
+          "pricingTable"
+        ],
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "properties": {}
+          },
+          "pricingTable": {
+            "$ref": "#/components/schemas/PricingTableRequest"
+          }
+        }
+      },
+      "AttributePricingTableRequest": {
+        "required": [
+          "attributePricingTableItems",
+          "effectiveStartDate",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "effectiveStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "effectiveEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "attributePricingTableItems": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributePricingTableItemRequest"
+            }
+          }
+        }
+      },
+      "PricingTableItemRequest": {
+        "required": [
+          "price",
+          "priceFormat",
+          "tier"
+        ],
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "end": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "price": {
+            "type": "number"
+          },
+          "ceilingPrice": {
+            "type": "number"
+          },
+          "floorPrice": {
+            "type": "number"
+          },
+          "blockSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "priceFormat": {
+            "type": "string",
+            "enum": [
+              "per-unit",
+              "flat-fee",
+              "per-block"
+            ]
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "PricingTableRequest": {
+        "required": [
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "pricingTableItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingTableItemRequest"
+            }
+          }
+        }
+      },
+      "AuthenticationRequest": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "admin@company.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password"
+          }
+        }
+      },
+      "AccountRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "description": "Name for this customer account",
+            "example": "Abbie"
+          },
+          "number": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "description": "Number for this account. You can specify your own customer identifier. If you don't specify the system will generate one",
+            "example": "ACC-0000000001"
+          },
+          "addressLine1": {
+            "maxLength": 256,
+            "minLength": 6,
+            "type": "string",
+            "description": "Primary address line",
+            "example": "street or PO Box"
+          },
+          "addressLine2": {
+            "type": "string",
+            "description": "Secondary address line",
+            "example": "Apt, suite, unit, building, floor etc."
+          },
+          "country": {
+            "type": "string",
+            "description": "Country code",
+            "example": "US"
+          },
+          "state": {
+            "type": "string",
+            "description": "State or province",
+            "example": "CA"
+          },
+          "city": {
+            "type": "string",
+            "description": "City name",
+            "example": "Los Angeles"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code",
+            "example": "84001"
+          },
+          "email": {
+            "maxLength": 128,
+            "minLength": 3,
+            "type": "string",
+            "description": "Email address",
+            "example": "abbie@gmail.com"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the account"
+          },
+          "taxExempt": {
+            "type": "boolean",
+            "description": "Tax exempt used for tax engine integration"
+          }
+        }
+      },
+      "InvoiceInfo": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "taxAmount": {
+            "type": "number"
+          },
+          "subTotal": {
+            "type": "number"
+          },
+          "trialAdjustedAmount": {
+            "type": "number"
+          },
+          "discountAmount": {
+            "type": "number"
+          },
+          "surchargeAmount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "posted",
+              "partial-paid",
+              "paid",
+              "cancelled"
+            ]
+          }
+        }
+      },
+      "InvoiceDetailInfo": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "subTotal": {
+            "type": "number"
+          },
+          "taxAmount": {
+            "type": "number"
+          },
+          "discountAmount": {
+            "type": "number"
+          },
+          "amountAfterDiscount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "posted",
+              "partially-paid",
+              "paid",
+              "reversed"
+            ]
+          },
+          "invoiceItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceItemInfo"
+            }
+          }
+        }
+      },
+      "InvoiceItemInfo": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "invoiceId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "skuId": {
+            "type": "string"
+          },
+          "periodStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "subTotal": {
+            "type": "number"
+          },
+          "discountAmount": {
+            "type": "number"
+          },
+          "amountAfterDiscount": {
+            "type": "number"
+          },
+          "taxAmount": {
+            "type": "number"
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Authentication successful"
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJSUzI1NiJ9..."
+          }
+        }
+      },
+      "LogoutResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Logout successful"
+          }
+        }
+      }
+    },
+    "responses": {},
+    "securitySchemes": {
+      "token": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [],
+  "security": []
+}
