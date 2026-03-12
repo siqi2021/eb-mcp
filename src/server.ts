@@ -7,6 +7,7 @@ import path from "node:path";
 import { Agent, type Dispatcher } from "undici";
 
 const DEFAULT_BILLING_API_BASE_URL = "https://test.api.easybilling.cloud/billing";
+const DEFAULT_PAYMENT_API_BASE_URL = "https://test.api.easybilling.cloud/payment";
 const BILLING_CA_CERT_PATH = process.env.EB_BILLING_CA_CERT_PATH;
 const BILLING_TLS_INSECURE = process.env.EB_BILLING_TLS_INSECURE === "true";
 
@@ -37,6 +38,10 @@ function isTokenExpired(tokenExpiry: string) {
 
 function resolveBillingApiBaseUrl(apiBaseUrl?: string) {
   return apiBaseUrl || process.env.EB_BILLING_API_BASE_URL || DEFAULT_BILLING_API_BASE_URL;
+}
+
+function resolvePaymentApiBaseUrl(apiBaseUrl?: string) {
+  return apiBaseUrl || process.env.EB_PAYMENT_API_BASE_URL || DEFAULT_PAYMENT_API_BASE_URL;
 }
 
 function getBillingDispatcher(): Dispatcher | undefined {
@@ -991,6 +996,473 @@ export const getServer = () => {
         return {
           content: [{ type: "text", text: `Create payment method request error: ${errorMessage}` }],
         };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_data_query",
+    "Get a list of payments via POST /api/data-query. Required inputs: 'startDate', 'endDate', 'queryObject'. Optional inputs: 'filters', 'token', 'apiBaseUrl'.",
+    {
+      startDate: z.string().nonempty().describe("Required. Start date, for example: 2026-01-01."),
+      endDate: z.string().nonempty().describe("Required. End date, for example: 2026-03-01."),
+      queryObject: z.enum([
+        "usage-event-insights-summary",
+        "usage-event-insights-detail",
+        "revenue-insights-summary",
+        "revenue-insights-detail",
+        "bucket-transaction",
+        "usage-event",
+        "aggregated-usage",
+        "payment-query-list",
+      ]).describe("Required. Query object type."),
+      filters: z.array(z.record(z.unknown())).optional().describe("Optional filters array."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ startDate, endDate, queryObject, filters, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/data-query`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "content-type": "application/json",
+            "trace-id": randomUUID(),
+          },
+          body: JSON.stringify({ startDate, endDate, queryObject, filters }),
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Data query failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Data query request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_create_transaction",
+    "Create payment transaction via POST /api/transactions. Required inputs: 'transactionId', 'amount', 'currency', 'paymentGatewayType', 'completePayRedirectUrl', 'onlineScenario', 'cancelPayRedirectUrl', 'date'. Optional inputs: 'description', 'customerIdentifier', 'token', 'apiBaseUrl'.",
+    {
+      transactionId: z.string().nonempty().describe("Required. Business transaction id."),
+      amount: z.string().nonempty().describe("Required. Transaction amount as string."),
+      currency: z.string().nonempty().describe("Required. Currency code, for example: USD."),
+      paymentGatewayType: z.enum(["stripe-connect", "alipay-page", "wechat-pay-native"]).describe("Required. Payment gateway type."),
+      completePayRedirectUrl: z.string().url().describe("Required. Redirect URL after payment completion."),
+      onlineScenario: z.boolean().describe("Required. True for one-time payment, false for recurring payment."),
+      cancelPayRedirectUrl: z.string().url().describe("Required. Cancel payment redirect URL."),
+      date: z.string().nonempty().describe("Required. Transaction date/time string."),
+      description: z.string().optional().describe("Optional. Transaction description."),
+      customerIdentifier: z.string().optional().describe("Optional. Customer identifier."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ transactionId, amount, currency, paymentGatewayType, completePayRedirectUrl, onlineScenario, cancelPayRedirectUrl, date, description, customerIdentifier, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/transactions`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "content-type": "application/json",
+            "trace-id": randomUUID(),
+          },
+          body: JSON.stringify({
+            transactionId,
+            description,
+            amount,
+            currency,
+            date,
+            customerIdentifier,
+            paymentGatewayType,
+            completePayRedirectUrl,
+            onlineScenario,
+            cancelPayRedirectUrl,
+          }),
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Create transaction failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Create transaction request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_get_transaction_status",
+    "Get transaction status via GET /transactions/{transactionId}/status. Required input: 'transactionId'. Optional inputs: 'token', 'apiBaseUrl'.",
+    {
+      transactionId: z.string().nonempty().describe("Required. Transaction id."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ transactionId, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/transactions/${encodeURIComponent(transactionId)}/status`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "GET",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "trace-id": randomUUID(),
+          },
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Get transaction status failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Get transaction status request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_create_refund",
+    "Create refund via POST /api/refund. Required inputs: 'transactionId', 'refundTransactionId'. Optional inputs: 'token', 'apiBaseUrl'.",
+    {
+      transactionId: z.string().nonempty().describe("Required. Original payment transaction id."),
+      refundTransactionId: z.string().nonempty().describe("Required. Refund transaction id."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ transactionId, refundTransactionId, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/refund`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "content-type": "application/json",
+            "trace-id": randomUUID(),
+          },
+          body: JSON.stringify({ transactionId, refundTransactionId }),
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Create refund failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Create refund request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_get_refund",
+    "Get refund status via GET /api/refund. Optional inputs: 'transactionId', 'refundTransactionId', 'token', 'apiBaseUrl'.",
+    {
+      transactionId: z.string().optional().describe("Optional. Original payment transaction id."),
+      refundTransactionId: z.string().optional().describe("Optional. Refund transaction id."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ transactionId, refundTransactionId, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const queryParts: string[] = [];
+      if (transactionId) queryParts.push(`transactionId=${encodeURIComponent(transactionId)}`);
+      if (refundTransactionId) queryParts.push(`refundTransactionId=${encodeURIComponent(refundTransactionId)}`);
+      const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/refund${queryString}`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "GET",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "trace-id": randomUUID(),
+          },
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Get refund failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Get refund request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_insights",
+    "Query payment insights via POST /api/insights. Required inputs: 'startDate', 'endDate', 'queryObject', 'aggregationPeriod'. Optional input: 'filters', 'token', 'apiBaseUrl'.",
+    {
+      startDate: z.string().nonempty().describe("Required. Start date, for example: 2026-01-11."),
+      endDate: z.string().nonempty().describe("Required. End date, for example: 2026-02-11."),
+      queryObject: z.literal("payment-statistics-query").describe("Required. Query object for payment insights."),
+      aggregationPeriod: z.enum(["daily", "monthly", "yearly"]).describe("Required. Aggregation period."),
+      filters: z.array(z.record(z.unknown())).optional().describe("Optional filters array."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ startDate, endDate, queryObject, aggregationPeriod, filters, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/insights`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "content-type": "application/json",
+            "trace-id": randomUUID(),
+          },
+          body: JSON.stringify({ startDate, endDate, queryObject, aggregationPeriod, filters }),
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Insights query failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Insights request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_refresh_transaction_status",
+    "Refresh transaction status via POST /api/transactions/{transactionId}/status. Required input: 'transactionId'. Optional inputs: 'token', 'apiBaseUrl'.",
+    {
+      transactionId: z.string().nonempty().describe("Required. Transaction id."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ transactionId, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/transactions/${encodeURIComponent(transactionId)}/status`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "trace-id": randomUUID(),
+          },
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Refresh transaction status failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Refresh transaction status request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_close_transaction",
+    "Close transaction via PUT /api/transactions/{transactionId}/status. Required input: 'transactionId'. Optional inputs: 'targetStatus', 'token', 'apiBaseUrl'.",
+    {
+      transactionId: z.string().nonempty().describe("Required. Transaction id."),
+      targetStatus: z.string().optional().describe("Optional target status, for example: closed."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ transactionId, targetStatus, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const queryString = targetStatus ? `?targetStatus=${encodeURIComponent(targetStatus)}` : "";
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/transactions/${encodeURIComponent(transactionId)}/status${queryString}`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "PUT",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "trace-id": randomUUID(),
+          },
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Close transaction failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }], };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Close transaction request error: ${formatRequestError(error)}` }] };
+      }
+    }
+  );
+
+  server.tool(
+    "eb_payment_create_payment_method",
+    "Set up payment method via POST /api/payment-methods. Required inputs: 'customerIdentifier', 'paymentGatewayType', 'redirectUrl', 'cancelUrl'. Optional inputs: 'token', 'apiBaseUrl'.",
+    {
+      customerIdentifier: z.string().nonempty().describe("Required. Customer identifier."),
+      paymentGatewayType: z.string().nonempty().describe("Required. Payment gateway type."),
+      redirectUrl: z.string().url().describe("Required. Redirect URL after setup."),
+      cancelUrl: z.string().url().describe("Required. Cancel URL when setup is canceled."),
+      token: z.string().optional().describe("Optional bearer token. If omitted, cached token from login will be used."),
+      apiBaseUrl: z.string().url().optional().describe("Optional payment API base URL, for example: https://payment.example.com"),
+    },
+    async ({ customerIdentifier, paymentGatewayType, redirectUrl, cancelUrl, token, apiBaseUrl }) => {
+      const resolvedBaseUrl = resolvePaymentApiBaseUrl(apiBaseUrl);
+      const tokenToUse = token ?? cachedBillingToken;
+
+      if (!resolvedBaseUrl) {
+        return { content: [{ type: "text", text: "Missing payment API base URL. Provide 'apiBaseUrl' or set 'EB_PAYMENT_API_BASE_URL'." }] };
+      }
+
+      if (!tokenToUse) {
+        return { content: [{ type: "text", text: "Missing token. Provide 'token' or call eb_billing_login first in the same MCP session." }] };
+      }
+
+      const endpoint = `${resolvedBaseUrl.replace(/\/$/, "")}/api/payment-methods`;
+
+      try {
+        const response = await secureFetch(endpoint, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${tokenToUse}`,
+            "content-type": "application/json",
+            "trace-id": randomUUID(),
+          },
+          body: JSON.stringify({
+            customerIdentifier,
+            paymentGatewayType,
+            redirectUrl,
+            cancelUrl,
+          }),
+        });
+
+        const contentType = response.headers.get("content-type") ?? "";
+        const responseBody = contentType.includes("application/json") ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          return { content: [{ type: "text", text: `Create payment method failed (${response.status}). Response: ${typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody)}` }] };
+        }
+
+        return { content: [{ type: "text", text: typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: `Create payment method request error: ${formatRequestError(error)}` }] };
       }
     }
   );
