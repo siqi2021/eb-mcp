@@ -24,7 +24,7 @@ app.use(cors({
   origin: '*', // Configure appropriately for production, for example:
   // origin: ['https://your-remote-domain.com', 'https://your-other-remote-domain.com'],
   exposedHeaders: ['Mcp-Session-Id'],
-  allowedHeaders: ['Content-Type', 'mcp-session-id'],
+  allowedHeaders: ['Content-Type', 'mcp-session-id', 'Authorization'],
 }));
 
 // Map to store transports by session ID
@@ -61,7 +61,11 @@ app.post('/mcp', async (req, res) => {
         delete transports[transport.sessionId];
       }
     };
-    const server = getServer();
+    // Extract Bearer token from Authorization header if present
+    const authHeader = req.headers['authorization'] as string | undefined;
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : undefined;
+
+    const server = getServer(bearerToken);
 
     // Connect to the MCP server
     await server.connect(transport);

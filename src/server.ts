@@ -105,12 +105,12 @@ function formatRequestError(error: unknown) {
   return error.message;
 }
 
-export const getServer = () => {
+export const getServer = (headerAuthToken?: string) => {
   const server = new McpServer({
     name: "eb",
     version: "1.0.0",
   });
-  let cachedBillingToken: string | undefined;
+  let cachedBillingToken: string | undefined = headerAuthToken;
 
   server.tool(
     "eb_billing_login",
