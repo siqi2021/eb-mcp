@@ -112,31 +112,15 @@ export const getServer = (headerAuthToken?: string) => {
   });
   let cachedBillingToken: string | undefined = headerAuthToken;
 
-  const loginToolDescription = headerAuthToken
-    ? "Authentication is already configured via the Authorization header token provided at MCP startup — do NOT call this tool or ask the user for username/password. All API calls will use the pre-configured token automatically."
-    : "Use this tool to authenticate a user against EasyBilling via POST /api/authenticate/login. Only call this when no Authorization token was provided at MCP startup. Collect 'username' and 'password' from the user through conversation before calling. Optionally provide 'apiBaseUrl' if different from environment config. The tool sends trace-id automatically and returns login result including token when successful.";
-
   server.tool(
     "eb_billing_login",
-    loginToolDescription,
+    "Use this tool to authenticate a user against EasyBilling via POST /api/authenticate/login. Collect 'username' and 'password' from the user through conversation before calling. Optionally provide 'apiBaseUrl' if different from environment config. The tool sends trace-id automatically and returns login result including token when successful.",
     {
       username: z.string().nonempty().describe("The EasyBilling username, usually an email. Example: user@easybilling.cloud"),
       password: z.string().nonempty().describe("The EasyBilling password."),
       apiBaseUrl: z.string().url().optional().describe("Optional EasyBilling API base URL, for example: https://billing.example.com"),
     },
     async ({ username, password, apiBaseUrl }) => {
-      // If a token was already provided via Authorization header, skip login
-      if (cachedBillingToken) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Already authenticated via Authorization header token. No login required.",
-            },
-          ],
-        };
-      }
-
       const resolvedBaseUrl = resolveBillingApiBaseUrl(apiBaseUrl);
 
       if (!resolvedBaseUrl) {
