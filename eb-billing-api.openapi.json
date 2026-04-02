@@ -1518,6 +1518,12 @@
               "$ref": "#/components/schemas/PricingTableRequest"
             }
           },
+          "contractResourceCredits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractResourceCreditRequest"
+            }
+          },
           "discounts": {
             "type": "array",
             "items": {
@@ -1528,6 +1534,28 @@
         "required": [
           "planItemId",
           "effectiveDate"
+        ]
+      },
+      "ContractResourceCreditRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "totalCredits": {
+            "type": "number"
+          },
+          "uom": {
+            "type": "string"
+          },
+          "costPercentage": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "totalCredits",
+          "uom"
         ]
       },
       "CancelAction": {
